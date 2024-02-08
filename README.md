@@ -15,31 +15,21 @@ require("neotest").setup({
         require("neotest-criterion.patchedDiagnostics")
     },
     adapters = {
-        require("neotest").setup({
-            diagnostic = {
-                enabled = false
+        require("neotest-criterion").setup({
+            color = true,
+            errorMessages = {
+                crash = "CRASH",
+                unexpectedSignal = "Unexpected signal caught below this line!",
+                group = false
             },
-            consumers = {
-                require("neotest-criterion.patchedDiagnostics")
-            },
-            adapters = {
-                require("neotest-criterion").setup({
-                    color = true,
-                    errorMessages = {
-                        crash = "CRASH",
-                        unexpectedSignal = "Unexpected signal caught below this line!",
-                        group = false
-                    },
-                    criterionLogErrorFailTest = false,
-                    noUnexpectedSignalAtStartOfTest = false,
-                    buildCommand = {},
-                    executable = "./test",
-                    executableEnv = {}
-                })
-            }
+            criterionLogErrorFailTest = false,
+            noUnexpectedSignalAtStartOfTest = false,
+            buildCommand = {},
+            executable = "./test",
+            executableEnv = {}
         })
     }
-)}
+})
 ```
 
 ##TODO :
