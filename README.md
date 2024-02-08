@@ -33,4 +33,4 @@ require("neotest").setup({
 ```
 
 ##TODO :
-- [] update Readme
+- [ ] update Readme
