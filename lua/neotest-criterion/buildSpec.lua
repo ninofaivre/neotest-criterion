@@ -1,4 +1,4 @@
-local M = {}
+local Adapter = require("neotest-criterion.Adapter.base")
 
 local Results = require("neotest-criterion.results")
 
@@ -35,27 +35,25 @@ criterionFilterBuilder.build = function (tree)
 	return criterionFilterBuilder.atPatternList.build(subPatterns)
 end
 
-M.build_spec = function(args)
+function Adapter:buildSpec(args)
 	local tree = args.tree
-	-- local root = args.tree:root()
 
 	local context = {
 		results = {},
 		tree = tree,
 		oldTree = vim.deepcopy(tree, false),
+		settings = self.settings
 	}
 
-	local settings = require("neotest-criterion.settings")
-
 	return {
-		command = table.concat(settings.buildCommand, " ") .. "&&" .. table.concat({
-				settings.executable,
+		command = table.concat(self.settings.buildCommand, " ") .. "&&" .. table.concat({
+				self.settings.executable,
 				'--verbose',
-				settings.color and '--color=always' or '--color=never',
+				self.settings.color and '--color=always' or '--color=never',
 				'--always-succeed',
 				'--filter', "'" .. criterionFilterBuilder.build(tree) .. "'"
 			}, " "),
-		env = settings.executableEnv,
+		env = self.settings.executableEnv,
 		stream = function (output_stream)
 			return function()
 				return Results.asyncResults(output_stream(), context)
@@ -65,4 +63,4 @@ M.build_spec = function(args)
 	}
 end
 
-return M
+return Adapter

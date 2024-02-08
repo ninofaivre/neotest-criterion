@@ -3,12 +3,11 @@ local M = {}
 local Lexer = require("neotest-criterion.results.lexing").Lexer
 local Parser = require("neotest-criterion.results.parsing").Parser
 local Interpreter = require("neotest-criterion.results.interpreting").Interpreter
-local settings = require("neotest-criterion.settings")
 
 local statusLevel = { ["running"] = 0, ["skipped"] = 1, ["passed"] = 2, ["failed"] = 3 }
 
 -- could cause an issue if setting is changed during a test (very unlikely)
-local function pushNewErrors(pastResult, newErrors)
+local function pushNewErrors(pastResult, newErrors, settings)
 	if settings.errorMessages.group == false then
 		for _, error in ipairs(newErrors) do
 			table.insert(pastResult.errors, error)
@@ -48,13 +47,13 @@ M.asyncResults = function(output, context)
 			result.errors = {}
 			aggregatedResult = result
 			aggregatedResult.meta = {}
-			pushNewErrors(aggregatedResult, errors)
+			pushNewErrors(aggregatedResult, errors, context.settings)
 		else
 			if statusLevel[result.status] > statusLevel[aggregatedResult.status] then
 				aggregatedResult.status = result.status
 			end
 			aggregatedResult.short = aggregatedResult.short .. result.short
-			pushNewErrors(aggregatedResult, result.errors)
+			pushNewErrors(aggregatedResult, result.errors, context.settings)
 		end
 		pastResults[neotestId] = aggregatedResult
 		results[neotestId] = aggregatedResult

@@ -111,7 +111,8 @@ function Parser:new(init)
 	init = vim.tbl_extend("force", {
 		lexer = lexing.Lexer:new({}),
 		cursor = 1,
-		_tokens = {}
+		_tokens = {},
+		goToNextLineIfNoCorr = true
 	}, init)
 	setmetatable(init, self)
 	self.__index = self
@@ -208,10 +209,15 @@ end
 function Parser:getNextItem()
 	local item = self:_tryToMatchItem()
 	while item == nil and self._tokens[self.cursor] ~= nil do
-		self:_cursorToNextLine()
+		-- idk if it will be usefull later, the first one has higher perfs
+		-- but the second one can match midLine Items
+		if self.goToNextLineIfNoCorr == true then
+			self:_cursorToNextLine()
+		else
+			self.cursor = self.cursor + 1
+		end
 		item = self:_tryToMatchItem()
 	end
-	-- vim.notify(vim.inspect(item))
 	return item
 end
 

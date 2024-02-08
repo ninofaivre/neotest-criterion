@@ -3,7 +3,6 @@ local M = {}
 local parsing = require("neotest-criterion.results.parsing")
 local tokenTypes = require("neotest-criterion.results.lexing").tokenTypes
 local itemTypes = parsing.itemTypes
-local settings = require("neotest-criterion.settings")
 
 local function findTokenByTypeInList(list, type, n)
 	n = n or 1
@@ -52,13 +51,13 @@ local resultCorrespondanceTable = {
 	[itemTypes.FailedTestResult] = function ()
 		return { status = "failed" }
 	end,
-	[itemTypes.CrashedTestResult] = function ()
+	[itemTypes.CrashedTestResult] = function (_, interpreter)
 		local result = {
 			status = "failed",
 		}
-		if settings.errorMessages.crash ~= vim.NIL then
+		if interpreter.context.settings.errorMessages.crash ~= vim.NIL then
 			result.errors = {{
-				message = settings.errorMessages.crash
+				message = interpreter.context.settings.errorMessages.crash
 			}}
 		end
 		return result
@@ -88,22 +87,22 @@ local resultCorrespondanceTable = {
 		local lineNumber = findTokenByTypeInList(item.tokens, tokenTypes.Number).image
 		local test = getTestFromFilePosition(interpreter.context.oldTree, { path = filePath, line = lineNumber })
 		if test == nil then return nil end
-		if settings.noUnexpectedSignalAtStartOfTest == true and (lineNumber - 1) == test.range[1] then
+		if interpreter.context.settings.noUnexpectedSignalAtStartOfTest == true and (lineNumber - 1) == test.range[1] then
 			return nil
 		end
 		return {
 			neotestId = test.id,
 			errors = {{
 				line = lineNumber - 1,
-				message = settings.errorMessages.unexpectedSignal
+				message = interpreter.context.settings.errorMessages.unexpectedSignal
 			}}
 		}
 	end,
-	[itemTypes.ErrorLog] = function (item)
+	[itemTypes.ErrorLog] = function (item, interpreter)
 		local _, i_token = findTokenByTypeInList(item.tokens, tokenTypes.TestId)
 		local error = getRawLineContentFromTokens(item.tokens, i_token + 1)
 		local status = nil
-		if settings.criterionLogErrorFailTest == true then
+		if interpreter.context.settings.criterionLogErrorFailTest == true then
 			status = "failed"
 		end
 

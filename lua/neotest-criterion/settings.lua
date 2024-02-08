@@ -12,22 +12,13 @@ local defaults = {
 	buildCommand = {}
 }
 
-local Settings = {
-	color = defaults.color,
-	errorMessages = defaults.errorMessages,
-	criterionLogErrorFailTest = defaults.criterionLogErrorFailTest,
-	noUnexpectedSignalAtStartOfTest = defaults.noUnexpectedSignalAtStartOfTest,
-	executableEnv = defaults.executableEnv,
-	executable = defaults.executable,
-	buildCommand = defaults.buildCommand
-}
+local Settings = {}
 
-function Settings:set(newSettings)
-	if newSettings == nil then return end
-	local settings = vim.tbl_deep_extend("force", defaults, newSettings)
-	for name, setting in pairs(settings) do
-		self[name] = setting
-	end
+function Settings:new(init)
+	init = vim.tbl_deep_extend("force", vim.deepcopy(defaults, true), init)
+	self.__index = self
+	setmetatable(init, self)
+	return init
 end
 
 return Settings

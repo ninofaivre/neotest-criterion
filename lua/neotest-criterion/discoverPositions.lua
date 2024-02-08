@@ -1,4 +1,4 @@
-local M = {}
+local Adapter = require("neotest-criterion.Adapter.base")
 
 local lib = require("neotest.lib")
 
@@ -70,7 +70,7 @@ local function addNamespaces(tree)
 	return require("neotest.types").Tree.from_list(list, function (pos) return pos.id end)
 end
 
-M.discover_positions = function (file_path)
+function Adapter:discoverPositions (file_path)
 	local query = [[
 		(
 			(expression_statement
@@ -121,4 +121,4 @@ M.discover_positions = function (file_path)
 	return addNamespaces(tree)
 end
 
-return M
+return Adapter
