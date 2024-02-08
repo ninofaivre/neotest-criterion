@@ -12,7 +12,7 @@ local tokenTypes = {
 	Eol = { "Eol" },
 	Eof = { "Eof" },
 	Whitespaces = { "Whitespaces" },
-	Sentence = { "Sentence" },
+	Char = { "Char" },
 	FilePath = { "FilePath" },
 	Colon = { "Colon" },
 	Number = { "Number" },
@@ -121,6 +121,10 @@ local tokenCorrespondenceTable = {
 		image = function (match)
 			return match:find(":$") and match:sub(1, match:len() - 1) or match
 		end
+	}, {
+		-- neet to stay at the bottom of the list
+		regex = "%S",
+		type = tokenTypes.Char
 	}
 }
 
@@ -166,10 +170,7 @@ function Lexer:_getRangeAndTokenFromLine()
 			break ;
 		end
 	end
-	if range ~= nil and token ~= nil then
-		return range, token
-	end
-	return { 0, line:len() }, { type = tokenTypes.Sentence, origin = line }
+	return range, token
 end
 
 function Lexer:getNextToken()

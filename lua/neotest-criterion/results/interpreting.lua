@@ -19,19 +19,19 @@ local function findTokenByTypeInList(list, type, n)
 	return nil
 end
 
-local function getTestIdFromFilePosition(tree, filePosition)
+local function getTestFromFilePosition(tree, filePosition)
 	for _, node in tree:iter_nodes() do
 		local nodeData = node:data()
 		if nodeData.type == "test" and nodeData.id:find(filePosition.path) then
 			local range = nodeData.range
 			if range[1] <= filePosition.line - 1 and range[3] >= filePosition.line - 1 then
-				return nodeData.id
+				return nodeData
 			end
 		end
 	end
 end
 
-local function getLineContentFromTokens(tokens, start_pos)
+local function getRawLineContentFromTokens(tokens, start_pos)
 	local origins = {}
 	while tokens[start_pos].type == tokenTypes.Whitespaces do
 		start_pos = start_pos + 1
@@ -56,9 +56,9 @@ local resultCorrespondanceTable = {
 		local result = {
 			status = "failed",
 		}
-		if settings.get().crashErrorMessage ~= vim.NIL then
+		if settings.errorMessages.crash ~= vim.NIL then
 			result.errors = {{
-				message = settings.get().errorMessages.crash
+				message = settings.errorMessages.crash
 			}}
 		end
 		return result
@@ -71,11 +71,12 @@ local resultCorrespondanceTable = {
 		local lineNumber = findTokenByTypeInList(item.tokens, tokenTypes.Number).image
 
 		local _, i_token = findTokenByTypeInList(item.tokens, tokenTypes.CloseSquareBracket, 3)
-		local message = getLineContentFromTokens(item.tokens, i_token + 1)
+		local message = getRawLineContentFromTokens(item.tokens, i_token + 1)
 
-		local neotestId = getTestIdFromFilePosition(interpreter.tree, { path = filePath, line = lineNumber })
+		local test = getTestFromFilePosition(interpreter.context.oldTree, { path = filePath, line = lineNumber })
+		if test == nil then return nil end
 		return {
-			neotestId = neotestId,
+			neotestId = test.id,
 			errors = {{
 				line = lineNumber - 1,
 				message = message
@@ -85,12 +86,54 @@ local resultCorrespondanceTable = {
 	[itemTypes.UnexpectedSignal] = function (item, interpreter)
 		local filePath = findTokenByTypeInList(item.tokens, tokenTypes.FilePath).origin
 		local lineNumber = findTokenByTypeInList(item.tokens, tokenTypes.Number).image
-		local neotestId = getTestIdFromFilePosition(interpreter.tree, { path = filePath, line = lineNumber })
+		local test = getTestFromFilePosition(interpreter.context.oldTree, { path = filePath, line = lineNumber })
+		if test == nil then return nil end
+		if settings.noUnexpectedSignalAtStartOfTest == true and (lineNumber - 1) == test.range[1] then
+			return nil
+		end
 		return {
-			neotestId = neotestId,
+			neotestId = test.id,
 			errors = {{
 				line = lineNumber - 1,
-				message = settings.get().errorMessages.unexpectedSignal
+				message = settings.errorMessages.unexpectedSignal
+			}}
+		}
+	end,
+	[itemTypes.ErrorLog] = function (item)
+		local _, i_token = findTokenByTypeInList(item.tokens, tokenTypes.TestId)
+		local error = getRawLineContentFromTokens(item.tokens, i_token + 1)
+		local status = nil
+		if settings.criterionLogErrorFailTest == true then
+			status = "failed"
+		end
+
+		return {
+			errors = {{
+				message = error,
+				severity = vim.diagnostic.severity.ERROR
+			}},
+			status = status
+		}
+	end,
+	[itemTypes.WarnLog] = function (item)
+		local _, i_token = findTokenByTypeInList(item.tokens, tokenTypes.TestId)
+		local warning = getRawLineContentFromTokens(item.tokens, i_token + 1)
+
+		return {
+			errors = {{
+				message = warning,
+				severity = vim.diagnostic.severity.WARN
+			}}
+		}
+	end,
+	[itemTypes.Log] = function (item)
+		local _, i_token = findTokenByTypeInList(item.tokens, tokenTypes.TestId)
+		local log = getRawLineContentFromTokens(item.tokens, i_token + 1)
+
+		return {
+			errors = {{
+				message = log,
+				severity = vim.diagnostic.severity.INFO
 			}}
 		}
 	end,
@@ -106,10 +149,19 @@ local resultCorrespondanceTable = {
 
 local Interpreter = {}
 
+local function findTestInTree(tree, key, value)
+	for _, node in tree:iter_nodes() do
+		local nodeData = node:data()
+		if nodeData.type == "test" and nodeData[key] == value then
+			return nodeData
+		end
+	end
+	return nil
+end
+
 function Interpreter:new(init)
 	init = vim.tbl_extend("force", {
-		parser = parsing.Parser:new({}),
-		tree = nil
+		parser = parsing.Parser:new({})
 	}, init)
 	setmetatable(init, self)
 	self.__index = self
@@ -129,11 +181,16 @@ function Interpreter:getNextResult()
 		errors = {}
 	}
 	if corr ~= nil then
-		result = vim.tbl_deep_extend("force", result, corr(item, self, result))
+		local corrResult = corr(item, self, result)
+		if corrResult == nil then return self:getNextResult() end
+		result = vim.tbl_deep_extend("force", result, corrResult)
 	end
 	if result.criterionId == nil and result.neotestId == nil then
-		return self.parser:getNextItem()
+		return self:getNextResult()
 	end
+	result.test = (result.neotestId and findTestInTree(self.context.tree, "id", result.neotestId))
+		or findTestInTree(self.context.tree, "criterionId", result.criterionId)
+	if result.test == nil then return self:getNextResult() end
 	if result.short == nil then
 		local origins = vim.tbl_map(function (token) return token.origin end, item.tokens)
 		result.short = table.concat(origins, "")

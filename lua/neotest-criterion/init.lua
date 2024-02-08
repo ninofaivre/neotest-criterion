@@ -37,7 +37,7 @@ local Settings = {
 --- @param settings Settings
 M.setup = function (settings)
 	assert(type(settings) == "table", "settings should be a table")
-	require("neotest-criterion.settings").set(settings)
+	require("neotest-criterion.settings"):set(settings)
 	return Adapter
 end
 

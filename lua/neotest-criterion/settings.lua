@@ -1,22 +1,33 @@
-local M = {}
-
-local baseSettings = {
+local defaults = {
 	color = true,
 	errorMessages = {
 		crash = "CRASH",
 		unexpectedSignal = "Unexpected signal caught below this line!",
-		group = false
+		group = false,
 	},
+	criterionLogErrorFailTest = false,
+	noUnexpectedSignalAtStartOfTest = false,
+	executable = "./test",
+	executableEnv = {},
+	buildCommand = {}
 }
 
-local settings = baseSettings
+local Settings = {
+	color = defaults.color,
+	errorMessages = defaults.errorMessages,
+	criterionLogErrorFailTest = defaults.criterionLogErrorFailTest,
+	noUnexpectedSignalAtStartOfTest = defaults.noUnexpectedSignalAtStartOfTest,
+	executableEnv = defaults.executableEnv,
+	executable = defaults.executable,
+	buildCommand = defaults.buildCommand
+}
 
-M.get = function ()
-	return settings
+function Settings:set(newSettings)
+	if newSettings == nil then return end
+	local settings = vim.tbl_deep_extend("force", defaults, newSettings)
+	for name, setting in pairs(settings) do
+		self[name] = setting
+	end
 end
 
-M.set = function (newSettings)
-	settings = vim.tbl_deep_extend("force", baseSettings, newSettings)
-end
-
-return M
+return Settings

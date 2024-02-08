@@ -32,6 +32,13 @@ local function bracketEnclosedToken(tokenType)
 	}
 end
 
+local function repeatTokens(repetition, ...)
+	return {
+		pattern = { ... },
+		repetition = repetition
+	}
+end
+
 local itemCorrespondenceTable = {
 	{
 		type = itemTypes.TheoryParametersFailure,
@@ -43,7 +50,7 @@ local itemCorrespondenceTable = {
 		pattern = {
 			bracketEnclosedToken(tokenTypes.StatusDash), tokenTypes.FilePath, tokenTypes.Colon, tokenTypes.Number, tokenTypes.Colon, tokenTypes.AssertionFailed, tokenTypes.Eol,
 			bracketEnclosedToken(tokenTypes.StatusDash), tokenTypes.Eol,
-			bracketEnclosedToken(tokenTypes.StatusDash), { pattern = { tokenTypes.WildcardDot }, repetition = repetitionTypes.UntilEol }, tokenTypes.Eol,
+			bracketEnclosedToken(tokenTypes.StatusDash), repeatTokens(repetitionTypes.UntilEol, tokenTypes.WildcardDot), tokenTypes.Eol,
 			bracketEnclosedToken(tokenTypes.StatusDash), tokenTypes.Eol
 		}
 	}, {
@@ -54,7 +61,7 @@ local itemCorrespondenceTable = {
 	}, {
 		type = itemTypes.Synthesis,
 		pattern = {
-			bracketEnclosedToken(tokenTypes.StatusDoubleDash), tokenTypes.Synthesis, tokenTypes.Sentence, tokenTypes.Eol,
+			bracketEnclosedToken(tokenTypes.StatusDoubleDash), tokenTypes.Synthesis, repeatTokens(repetitionTypes.UntilEol, tokenTypes.WildcardDot), tokenTypes.Eol,
 			tokenTypes.Eof
 		}
 	}, {
@@ -80,22 +87,22 @@ local itemCorrespondenceTable = {
 	}, {
 		type = itemTypes.Skip,
 		pattern = {
-			bracketEnclosedToken(tokenTypes.StatusSkip), tokenTypes.TestId, tokenTypes.Sentence, tokenTypes.Eol
+			bracketEnclosedToken(tokenTypes.StatusSkip), tokenTypes.TestId, repeatTokens(repetitionTypes.UntilEol, tokenTypes.WildcardDot), tokenTypes.Eol
 		}
 	}, {
 		type = itemTypes.ErrorLog,
 		pattern = {
-			bracketEnclosedToken(tokenTypes.StatusErr), tokenTypes.TestId, tokenTypes.Sentence, tokenTypes.Eol
+			bracketEnclosedToken(tokenTypes.StatusErr), tokenTypes.TestId, repeatTokens(repetitionTypes.UntilEol, tokenTypes.WildcardDot), tokenTypes.Eol
 		}
 	}, {
 		type = itemTypes.WarnLog,
 		pattern = {
-			bracketEnclosedToken(tokenTypes.StatusWarn), tokenTypes.TestId, tokenTypes.Sentence, tokenTypes.Eol
+			bracketEnclosedToken(tokenTypes.StatusWarn), tokenTypes.TestId, repeatTokens(repetitionTypes.UntilEol, tokenTypes.WildcardDot), tokenTypes.Eol
 		}
 	}, {
 		type = itemTypes.Log,
 		pattern = {
-			bracketEnclosedToken(tokenTypes.StatusDash), tokenTypes.TestId, tokenTypes.Sentence, tokenTypes.Eol
+			bracketEnclosedToken(tokenTypes.StatusDash), tokenTypes.TestId, repeatTokens(repetitionTypes.UntilEol, tokenTypes.WildcardDot), tokenTypes.Eol
 		}
 	}
 }

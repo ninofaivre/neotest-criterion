@@ -37,17 +37,15 @@ end
 
 M.build_spec = function(args)
 	local tree = args.tree
-	local root = args.tree:root()
-	local buildCommand = 'make -j8 test &>/dev/null'
-	-- local command = 'LD_LIBRARY_PATH="./Criterion/build/src" ./test --verbose --color=never --filter ' .. criterionFilterBuilder.build(tree)
+	-- local root = args.tree:root()
 
 	local context = {
 		results = {},
 		tree = tree,
-		buildSpecHookStatus = true
+		oldTree = vim.deepcopy(tree, false),
 	}
 
-	local settings = require("neotest-criterion.settings").get()
+	local settings = require("neotest-criterion.settings")
 
 	return {
 		command = table.concat(settings.buildCommand, " ") .. "&&" .. table.concat({

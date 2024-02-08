@@ -7,26 +7,16 @@ local settings = require("neotest-criterion.settings")
 
 local statusLevel = { ["running"] = 0, ["skipped"] = 1, ["passed"] = 2, ["failed"] = 3 }
 
-local function findTestInTree(tree, key, value)
-	for _, node in tree:iter_nodes() do
-		local nodeData = node:data()
-		if nodeData.type == "test" and nodeData[key] == value then
-			return nodeData
-		end
-	end
-	return nil
-end
-
 -- could cause an issue if setting is changed during a test (very unlikely)
 local function pushNewErrors(pastResult, newErrors)
-	if settings.get().errorMessages.group == false then
+	if settings.errorMessages.group == false then
 		for _, error in ipairs(newErrors) do
 			table.insert(pastResult.errors, error)
 		end
 		return
 	end
 	for _, error in ipairs(newErrors) do
-		local metaId = (error.line or "") .. error.message
+		local metaId = (error.line or "") .. error.message .. (error.severity or "")
 		if pastResult.meta[metaId] == nil then
 			table.insert(pastResult.errors, error)
 			pastResult.meta[metaId] = { n = 1, i_error = #pastResult.errors }
@@ -43,7 +33,7 @@ M.asyncResults = function(output, context)
 	local parser = Parser:new({ lexer = lexer })
 	local interpreter = Interpreter:new({
 		parser = parser,
-		tree = context.tree
+		context = context
 	})
 
 	local pastResults = context.results
@@ -51,28 +41,23 @@ M.asyncResults = function(output, context)
 
 	local result = interpreter:getNextResult()
 	while result ~= nil do
-		local test = (result.neotestId and findTestInTree(context.tree, "id", result.neotestId))
-			or findTestInTree(context.tree, "criterionId", result.criterionId)
-
-		if test then
-			local neotestId = test.id
-			local aggregatedResult = pastResults[neotestId]
-			if aggregatedResult == nil then
-				local errors = result.errors
-				result.errors = {}
-				aggregatedResult = result
-				aggregatedResult.meta = {}
-				pushNewErrors(aggregatedResult, errors)
-			else
-				if statusLevel[result.status] > statusLevel[aggregatedResult.status] then
-					aggregatedResult.status = result.status
-				end
-				aggregatedResult.short = aggregatedResult.short .. result.short
-				pushNewErrors(aggregatedResult, result.errors)
+		local neotestId = result.test.id
+		local aggregatedResult = pastResults[neotestId]
+		if aggregatedResult == nil then
+			local errors = result.errors
+			result.errors = {}
+			aggregatedResult = result
+			aggregatedResult.meta = {}
+			pushNewErrors(aggregatedResult, errors)
+		else
+			if statusLevel[result.status] > statusLevel[aggregatedResult.status] then
+				aggregatedResult.status = result.status
 			end
-			pastResults[neotestId] = aggregatedResult
-			results[neotestId] = aggregatedResult
+			aggregatedResult.short = aggregatedResult.short .. result.short
+			pushNewErrors(aggregatedResult, result.errors)
 		end
+		pastResults[neotestId] = aggregatedResult
+		results[neotestId] = aggregatedResult
 
 		result = interpreter:getNextResult()
 	end
