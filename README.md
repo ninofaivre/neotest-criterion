@@ -42,6 +42,6 @@ require("neotest").setup({
     - [ ] exemples
     - [ ] explaining settings
     - [ ] correcting my bad English
-- [ ] isTestFile
-- [ ] isTestDir
-- [ ] buildCommand
+- [x] isTestFile
+- [x] isTestDir
+- [x] buildCommand

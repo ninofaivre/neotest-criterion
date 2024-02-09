@@ -1,3 +1,4 @@
+local path = require("plenary.path")
 local Adapter = require("neotest-criterion.Adapter.base")
 
 local Results = require("neotest-criterion.results")
@@ -46,7 +47,7 @@ function Adapter:buildSpec(args)
 	}
 
 	return {
-		command = table.concat(self.settings.buildCommand, " ") .. "&&" .. table.concat({
+		command = "cd " .. self.root .. " && " .. table.concat(self.settings.buildCommand, " ") .. "&&" .. table.concat({
 				self.settings.executable,
 				'--verbose',
 				self.settings.color and '--color=always' or '--color=never',
