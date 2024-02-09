@@ -6,7 +6,7 @@ neotest adapter for Criterion (C/C++ unit-test framework)
 This is a very early realease, bug are to be expected. Currently it needs a patched consumer for diagnostics.
 So you need to disable the default diagnostic consumer. The patched one should be 100% compatible with the
 default one so others adapters should be okay. It use patched functions only for criterion adapter and use
-origin functions for other adapters. Original adapter is not updated more than a few times a year but still, it
+origin functions for other adapters. Original consumer is not updated more than a few times a year but still, it
 can cause some troubles.
 
 default settings :
