@@ -25,7 +25,7 @@ local function init(client)
     local buf_diag = {
       bufnr = bufnr,
       file_path = file_path,
-      tracking_marks = {},
+			tracking_marks = {},
 			error_code_lines = {},
       adapter_id = adapter_id,
     }
