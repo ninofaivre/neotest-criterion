@@ -64,4 +64,6 @@ function Adapter:buildSpec(args)
 	}
 end
 
+Adapter.mappings["build_spec"] = Adapter.buildSpec
+
 return Adapter

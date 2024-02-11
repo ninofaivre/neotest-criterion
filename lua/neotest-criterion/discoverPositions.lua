@@ -121,4 +121,6 @@ function Adapter:discoverPositions (file_path)
 	return addNamespaces(tree)
 end
 
+Adapter.mappings["discover_positions"] = Adapter.discoverPositions
+
 return Adapter
