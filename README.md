@@ -48,6 +48,7 @@ require("neotest").setup({
 - [x] buildCommand
 - [x] multiples testDir (array)
 - [x] exludeTestDir
+- [ ] exludeFileTest
 - [ ] cleaner buildCommand with a hook (?)
 - [ ] C++
 - [ ] dap strategy
