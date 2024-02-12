@@ -39,6 +39,7 @@ require("neotest").setup({
 
 ## TODO :
 
+- [ ] clean help (doc)
 - [ ] update Readme
     - [ ] exemples
     - [ ] explaining settings
@@ -48,6 +49,7 @@ require("neotest").setup({
 - [x] buildCommand
 - [x] multiples testDir (array)
 - [x] exludeTestDir
+- [ ] update settings (cleaner naming, etc...)
 - [ ] exludeFileTest
 - [ ] cleaner buildCommand with a hook (?)
 - [ ] C++
